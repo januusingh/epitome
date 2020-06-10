@@ -132,41 +132,45 @@ def load_data(data,
     assert np.invert(np.any(feature_cell_indices[:,delete_indices] == -1)), "missing data" # at %s" % (np.where(feature_cell_indices[:,delete_indices] == -1)[0])
 
     def g():
+        motifmat_sum = None
         if motifmat is not None:
-            # index into motifmat
-            # TODO: Add to original matrix generator script
-            unique_tf = motifmap["TF"].unique()
-
-            motifmat_sum = np.empty((0, 3268840))
-            motifmap_sum = []
-
-            for tf in unique_tf:
-                if tf not in list(assaymap.keys()):
-                    continue
-                tf_index = motifmap[motifmap["TF"] == tf]["Index"]
-                tf_motif = motifmat[tf_index,:]
-                tf_motif_sum = np.sum(tf_motif, axis=0)
-                tf_motif_sum[tf_motif_sum > 0] = 1
-                motifmat_sum = np.append(motifmat_sum, [tf_motif_sum], axis=0)
-                motifmap_sum = np.append(motifmap_sum, tf)
-
-            print("motifmat_sum.shape: ", motifmat_sum.shape, "motifmap_sum.shape: ", motifmap_sum.shape)
+            motifmap.columns = ['Index', 'TF']
             
-            # Calculate DNase peaks
-#             dnase_ind = get_y_indices_for_assay(matrix, assaymap, "DNase")
-#             print("data.shape: ", data.shape)
-#             print("data[dnase_ind,0].shape ", data[dnase_ind,0].shape)
+            motifmat_overlap = np.empty((0, 3268840))
+            motifmap_overlap = []
+            
+            # Assumes there is only 1 row per TF in motifmat
+            # Only incorporate motif data for given assays
+            for _, row in motifmap.iterrows():
+                if row['TF'] not in list(assaymap.keys()):
+                    continue
+                tf_motif = motifmat[row['Index'], :]
+                motifmat_overlap = np.append(motifmat_overlap, [tf_motif], axis=0)
+                motifmap_overlap = np.append(motifmap_overlap, row['TF'])
+                
+#             for i in motifmap["TF"]:
+#                 # Confirm TF in assayamp
+#                 if tf not in list(assaymap.keys()):
+#                     continue
+                    
+#                 motifmat_sum = np.append(motifmat_sum, [tf_motif_sum], axis=0)
+#                 motifmap_sum = np.append(motifmap_sum, tf)
+                    
+#                 # Assumes motifmap's TF column named "TF" and Index column named "Index"
+#                 tf_index = motifmap[motifmap["TF"] == tf]["Index"]
+#                 tf_motif = motifmat[tf_index,:]
+#                 tf_motif_sum = np.sum(tf_motif, axis=0)
+#                 tf_motif_sum[tf_motif_sum > 0] = 1
+                
+#                 motifmat_sum = np.append(motifmat_sum, [tf_motif_sum], axis=0)
+#                 motifmap_sum = np.append(motifmap_sum, tf)
+            
         for i in indices: # for all records specified
             motifs_i = None
             if motifmat is not None:
-                # Motifs exist in region
-                motifs_i = motifmat_sum[:,i] # assume that motif matrix has already been loaded
+                # Index into motif in region
+                motifs_i = motifmat_overlap[:,i] # assume that motif matrix has already been loaded
                 motifs_i[motifs_i > 0] = 1
-                # DNase peak in region
-#                 dnase_i = data[dnase_ind,i]
-#                 is_peak =(1 if np.any(dnase_i) else 0)
-                # Only look at motif where DNase peak exists
-#                 is_bound = (is_motif and is_peak)
                 
             for (cell) in label_cell_types: # for all cell types to be used in labels
                 
