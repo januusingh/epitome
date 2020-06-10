@@ -50,6 +50,8 @@ class VariationalPeakModel():
                  matrix = None,
                  assaymap = None,
                  cellmap = None,
+                 motifmat = None,
+                 motifmap = None,
                  debug = False,
                  batch_size = 64,
                  shuffle_size = 10,
@@ -128,6 +130,8 @@ class VariationalPeakModel():
                                                 matrix,
                                                 assaymap,
                                                 cellmap,
+                                                motifmat = motifmat,
+                                                motifmap = motifmap,
                                                 similarity_assays = similarity_assays,
                                                 radii = radii, mode = Dataset.TRAIN),
                                                 batch_size, shuffle_size, prefetch_size)
@@ -138,6 +142,8 @@ class VariationalPeakModel():
                                                 matrix,
                                                 assaymap,
                                                 cellmap,
+                                                motifmat = motifmat,
+                                                motifmap = motifmap,
                                                 similarity_assays = similarity_assays,
                                                 radii = radii, mode = Dataset.VALID),
                                                 batch_size, 1, prefetch_size)
@@ -150,6 +156,8 @@ class VariationalPeakModel():
                                                    matrix,
                                                    assaymap,
                                                    cellmap,
+                                                   motifmat = motifmat,
+                                                   motifmap = motifmap,
                                                    similarity_assays = similarity_assays,
                                                    radii = radii, mode = Dataset.TEST),
                                                    batch_size, 1, prefetch_size)
@@ -173,6 +181,8 @@ class VariationalPeakModel():
         self.matrix = matrix
         self.assaymap= assaymap
         self.cellmap = cellmap
+        self.motifmat = motifmat
+        self.motifmap = motifmap
         self.predict_assays = list(self.assaymap)
         [self.predict_assays.remove(i) for i in self.similarity_assays]
         self.model = self.create_model()
@@ -223,6 +233,8 @@ class VariationalPeakModel():
                          'matrix':self.matrix,
                          'assaymap':self.assaymap,
                          'cellmap':self.cellmap,
+                         'motifmap':self.motifmap,
+#                          'motifmat':self.motifmat,
                          'debug': self.debug,
                          'batch_size':self.batch_size,
                          'shuffle_size':self.shuffle_size,
@@ -338,6 +350,8 @@ class VariationalPeakModel():
                  self.matrix,
                  self.assaymap,
                  self.cellmap,
+                 motifmat = self.motifmat,
+                 motifmap = self.motifmap,
                  radii = self.radii,
                  mode = Dataset.RUNTIME,
                  similarity_matrix = matrix,

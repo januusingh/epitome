@@ -25,6 +25,8 @@ def load_data(data,
                  mode = Dataset.TRAIN,
                  similarity_matrix = None,
                  indices = None,
+                 motifmat = None,
+                 motifmap = None,
                  **kwargs):
     """
     Takes Deepsea data and calculates distance metrics from cell types whose locations
@@ -39,6 +41,9 @@ def load_data(data,
     :param radii: radii to compute similarity distances from
     :param mode: Dataset.TRAIN, VALID, TEST or RUNTIME
     :param indices: indices in genome to generate records for.
+    :param motifmat: matrix of 0/1 indicating if a site is bound or not. Contains n by # epitome sites, where n= # motifs being analyzed.
+    :param motifmap: map of transcription factors to rows in motifmat
+
     :param kwargs: kargs
 
     :returns: generator of data with three elements:
@@ -63,7 +68,7 @@ def load_data(data,
 
             # need to re-proportion the indices to equalize positives
             if (len(list(assaymap)) > 2):
-
+                
                 # get sums for each feature in the dataset
                 rowsums = np.sum(data[feature_indices,:], axis=1)
 
@@ -122,13 +127,47 @@ def load_data(data,
     
     # indices to be deleted used for similarity comparison
     delete_indices = np.array([assaymap[s] for s in similarity_assays])
-
+    
     # make sure no similarity comparison data is missing for all cell types
-    assert np.invert(np.any(feature_cell_indices[:,delete_indices] == -1)), \
-        "missing data at %s" % (np.where(feature_cell_indices[:,delete_indices] == -1)[0])
+    assert np.invert(np.any(feature_cell_indices[:,delete_indices] == -1)), "missing data" # at %s" % (np.where(feature_cell_indices[:,delete_indices] == -1)[0])
 
     def g():
+        if motifmat is not None:
+            # index into motifmat
+            # TODO: Add to original matrix generator script
+            unique_tf = motifmap["TF"].unique()
+
+            motifmat_sum = np.empty((0, 3268840))
+            motifmap_sum = []
+
+            for tf in unique_tf:
+                if tf not in list(assaymap.keys()):
+                    continue
+                tf_index = motifmap[motifmap["TF"] == tf]["Index"]
+                tf_motif = motifmat[tf_index,:]
+                tf_motif_sum = np.sum(tf_motif, axis=0)
+                tf_motif_sum[tf_motif_sum > 0] = 1
+                motifmat_sum = np.append(motifmat_sum, [tf_motif_sum], axis=0)
+                motifmap_sum = np.append(motifmap_sum, tf)
+
+            print("motifmat_sum.shape: ", motifmat_sum.shape, "motifmap_sum.shape: ", motifmap_sum.shape)
+            
+            # Calculate DNase peaks
+#             dnase_ind = get_y_indices_for_assay(matrix, assaymap, "DNase")
+#             print("data.shape: ", data.shape)
+#             print("data[dnase_ind,0].shape ", data[dnase_ind,0].shape)
         for i in indices: # for all records specified
+            motifs_i = None
+            if motifmat is not None:
+                # Motifs exist in region
+                motifs_i = motifmat_sum[:,i] # assume that motif matrix has already been loaded
+                motifs_i[motifs_i > 0] = 1
+                # DNase peak in region
+#                 dnase_i = data[dnase_ind,i]
+#                 is_peak =(1 if np.any(dnase_i) else 0)
+                # Only look at motif where DNase peak exists
+#                 is_bound = (is_motif and is_peak)
+                
             for (cell) in label_cell_types: # for all cell types to be used in labels
                 
                 similarities_double_positive = np.empty([len(eval_cell_types),0])
@@ -226,6 +265,11 @@ def load_data(data,
                     # The features going into the example.
                     labels = garbage_labels # all 0's
 
+                # append labels and assaymask
+                if motifmat is not None:
+#                     final = []
+                    final.append(motifs_i)
+                    
                 # append labels and assaymask
                 final.append(labels.astype(np.float32))
                 final.append(assay_mask.astype(np.float32))
