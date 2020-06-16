@@ -373,7 +373,7 @@ def get_assays_from_feature_file(feature_name_file = None,
 
     # sort assays alphabetically
     potential_assays = sorted(potential_assays, reverse=True)
-
+    
     # make sure DNase is first assay. This is because the model
     # assumes the first column specifies DNase
     potential_assays.remove("DNase")
