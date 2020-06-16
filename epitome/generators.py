@@ -41,8 +41,8 @@ def load_data(data,
     :param radii: radii to compute similarity distances from
     :param mode: Dataset.TRAIN, VALID, TEST or RUNTIME
     :param indices: indices in genome to generate records for.
-    :param motifmat: matrix of 0/1 indicating if a site is bound or not. Contains n by # epitome sites, where n= # motifs being analyzed.
-    :param motifmap: map of transcription factors to rows in motifmat
+    :param motifmat: loaded binary matrix of motif data. (j x m), where j is the number of unique TF's and m is the number of regions.
+    :param motifmap: map of TFs to rows in motifmat.
 
     :param kwargs: kargs
 
@@ -169,7 +169,7 @@ def load_data(data,
             motifs_i = None
             if motifmat is not None:
                 # Index into motif in region
-                motifs_i = motifmat_overlap[:,i] # assume that motif matrix has already been loaded
+                motifs_i = motifmat_overlap[:,i]
                 motifs_i[motifs_i > 0] = 1
                 
             for (cell) in label_cell_types: # for all cell types to be used in labels
@@ -255,12 +255,15 @@ def load_data(data,
                     present_indices = present_indices[present_indices!=-1]
                     cell_features = data[present_indices,i]
                     cell_similarities = similarities[j,:]
-                    concat = np.concatenate([cell_features, cell_similarities])
+                    # Add in motifs for position to features
+                    if motifmat is not None:
+                        concat = np.concatenate([cell_features, cell_similarities, motifs_i])
+                    else:
+                        concat = np.concatenate([cell_features, cell_similarities])
                     if c == cell: # if eval cell write out missing values
                         final.append(np.zeros(len(concat)))
                     else:
                         final.append(concat)
-
 
                 if (mode != Dataset.RUNTIME):
                     labels = data[label_cell_indices_no_similarities,i]
@@ -269,11 +272,6 @@ def load_data(data,
                     # The features going into the example.
                     labels = garbage_labels # all 0's
 
-                # append labels and assaymask
-                if motifmat is not None:
-#                     final = []
-                    final.append(motifs_i)
-                    
                 # append labels and assaymask
                 final.append(labels.astype(np.float32))
                 final.append(assay_mask.astype(np.float32))

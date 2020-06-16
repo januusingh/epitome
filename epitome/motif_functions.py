@@ -106,7 +106,7 @@ def generate_motif_matrix(queried_tfs,
         
     return
 
-def unique_motif_matrix(motifmat_file, motifmap_file, save_dir=None):
+def unique_motif_matrix(motifmat_file, motifmap_file, save_dir=None, save_suf=None):
     """
     Generates a (j x m) matrix, where j is the number of unique TFs
     and m is the number of sites in the all_regions_file. Also generates 
@@ -114,7 +114,8 @@ def unique_motif_matrix(motifmat_file, motifmap_file, save_dir=None):
 
     :param motifmat_file: str filename where the motifmat is stored.
     :param motifmap_file: str filename where the motifmap is stored. 
-    :param save: str directory to store the matrix/map. Won't save if None.
+    :param save_dir: str directory to store the matrix/map. Won't save if None.
+    :param save_suf: str suffix to add to file names when saving matrix and map.
 
     :return tuple (summed motifmat, summed motifmap)
     """
@@ -143,9 +144,13 @@ def unique_motif_matrix(motifmat_file, motifmap_file, save_dir=None):
     print("Summed motifmap shape: %s" % (str(motifmap_sum.shape)))
     
     if save_dir is not None:
-        motifmat_sum_file = os.path.join(save_dir, "unique_motifmat")
-        motifmap_sum_file = os.path.join(save_dir, "unique_motifmap.csv")
-        
+        if save_suf is None:
+            motifmat_sum_file = os.path.join(save_dir, "unique_motifmat")
+            motifmap_sum_file = os.path.join(save_dir, "unique_motifmap.csv")
+        else:
+            motifmat_sum_file = os.path.join(save_dir, save_suf + "_unique_motifmat")
+            motifmap_sum_file = os.path.join(save_dir, save_suf + "_unique_motifmap.csv")
+            
         np.savez_compressed(motifmat_sum_file, tf=motifmat_sum)
         motifmap_sum.to_csv(motifmap_sum_file, header=False)
         
