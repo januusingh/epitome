@@ -27,6 +27,7 @@ def load_data(data,
                  indices = None,
                  motifmat = None,
                  motifmap = None,
+                 motif_assays = [],
                  **kwargs):
     """
     Takes Deepsea data and calculates distance metrics from cell types whose locations
@@ -129,24 +130,37 @@ def load_data(data,
     delete_indices = np.array([assaymap[s] for s in similarity_assays])
     
     # make sure no similarity comparison data is missing for all cell types
-    assert np.invert(np.any(feature_cell_indices[:,delete_indices] == -1)), "missing data" # at %s" % (np.where(feature_cell_indices[:,delete_indices] == -1)[0])
+    assert np.invert(np.any(feature_cell_indices[:,delete_indices] == -1)), "missing data at %s" % (np.where(feature_cell_indices[:,delete_indices] == -1)[0])
+    
+    print("motif_assays: ", motif_assays)
 
     def g():
         motifmat_sum = None
+        
         if motifmat is not None:
+            # If no motif assays are specified, look at all TF's predicting on, except for 
+#             if motif_assays == []:
+#                 motif_assays = assaymap.keys()
+#                 motif_assays.remove('DNase')
+                
             motifmap.columns = ['Index', 'TF']
-            
-            motifmat_overlap = np.empty((0, 3268840))
-            motifmap_overlap = []
             
             # Assumes there is only 1 row per TF in motifmat
             # Only incorporate motif data for given assays
-            for _, row in motifmap.iterrows():
-                if row['TF'] not in list(assaymap.keys()):
-                    continue
-                tf_motif = motifmat[row['Index'], :]
-                motifmat_overlap = np.append(motifmat_overlap, [tf_motif], axis=0)
-                motifmap_overlap = np.append(motifmap_overlap, row['TF'])
+            motifmat_ind = motifmap[motifmap["TF"].isin(motif_assays)]['Index'].tolist()
+            motifmat_overlap = motifmat[motifmat_ind, :]
+            
+#             motifmat_overlap = np.empty((0, 3268840))
+#             motifmap_overlap = []
+            
+            # Assumes there is only 1 row per TF in motifmat
+            # Only incorporate motif data for given assays
+#             for _, row in motifmap.iterrows():
+#                 if row['TF'] not in list(assaymap.keys()):
+#                     continue
+#                 tf_motif = motifmat[row['Index'], :]
+#                 motifmat_overlap = np.append(motifmat_overlap, [tf_motif], axis=0)
+#                 motifmap_overlap = np.append(motifmap_overlap, row['TF'])
                 
 #             for i in motifmap["TF"]:
 #                 # Confirm TF in assayamp

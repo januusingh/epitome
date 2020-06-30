@@ -61,6 +61,7 @@ class VariationalPeakModel():
                  lr=1e-3,
                  radii=[1,3,10,30],
                  similarity_assays = ['DNase'],
+                 motif_assays = None,
                  train_indices = None,
                  data = None,
                  data_path = None,
@@ -132,6 +133,7 @@ class VariationalPeakModel():
                                                 cellmap,
                                                 motifmat = motifmat,
                                                 motifmap = motifmap,
+                                                motif_assays = motif_assays,
                                                 similarity_assays = similarity_assays,
                                                 radii = radii, mode = Dataset.TRAIN),
                                                 batch_size, shuffle_size, prefetch_size)
@@ -144,6 +146,7 @@ class VariationalPeakModel():
                                                 cellmap,
                                                 motifmat = motifmat,
                                                 motifmap = motifmap,
+                                                motif_assays = motif_assays,
                                                 similarity_assays = similarity_assays,
                                                 radii = radii, mode = Dataset.VALID),
                                                 batch_size, 1, prefetch_size)
@@ -183,6 +186,7 @@ class VariationalPeakModel():
         self.cellmap = cellmap
         self.motifmat = motifmat
         self.motifmap = motifmap
+        self.motif_assays = motif_assays
         self.predict_assays = list(self.assaymap)
         [self.predict_assays.remove(i) for i in self.similarity_assays]
         self.model = self.create_model()
