@@ -101,7 +101,6 @@ class VariationalPeakModel():
                                                 similarity_targets = dataset.similarity_targets,
                                                 radii = radii, mode = Dataset.VALID),
                                                 batch_size, 1, prefetch_size)
-
         # can be empty if len(test_celltypes) == 0
         if len(self.test_celltypes) > 0:
             _, _,            self.test_iter = generator_to_tf_dataset(load_data(self.dataset.get_data(Dataset.TEST),
@@ -287,7 +286,6 @@ class VariationalPeakModel():
 
         if (mode == Dataset.VALID):
             handle = self.valid_iter # for standard validation of validation cell types
-
         elif (mode == Dataset.TEST and len(self.test_celltypes) > 0):
             handle = self.test_iter # for standard validation of validation cell types
         else:

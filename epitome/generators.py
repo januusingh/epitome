@@ -132,7 +132,6 @@ def load_data(data,
                                                     positive_indices.shape[0] * 10,
                                                     p=indices_probs)
                 indices = np.sort(np.concatenate([negative_indices, positive_indices]))
-
         else:
             indices = range(0, data.shape[-1]) # not training mode, set to all points
 
